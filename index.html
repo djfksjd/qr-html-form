@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>조의금 작성</title>
+    <style>
+        body {
+          font-family: sans-serif;
+          padding: 20px;
+          background-color: #fff;
+        }
+        .container {
+          max-width: 500px;
+          margin: auto;
+        }
+        input, select, textarea, button {
+          width: 100%;
+          padding: 12px;
+          margin-top: 10px;
+          border-radius: 8px;
+          border: 1px solid #aaa;
+          font-size: 16px;
+        }
+        button {
+          background-color: black;
+          color: white;
+          border: none;
+          font-size: 18px;
+        }
+        button:disabled {
+          background-color: #ccc;
+        }
+        .section-title {
+          margin-top: 20px;
+          color: red;
+          font-size: 12px;
+        }
+        .note {
+          font-size: 12px;
+          color: gray;
+          margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>조의금 작성</h2>
+
+    <button onclick="goToBugoDetail()">故 [이름] 부고 →</button>
+
+    <select id="moneyType">
+        <option value="">조의금 유형</option>
+        <option>조의금(弔意金)</option>
+        <option>근조금(謹弔金)</option>
+        <option>조문대행비</option>
+        <option>조의품</option>
+        <option>부의품</option>
+        <option>화환</option>
+        <option>단체조의금</option>
+        <option>기타</option>
+    </select>
+
+    <select id="relationPerson">
+        <option value="">관계자 선택</option>
+    </select>
+
+    <div class="section-title">* 필수 입력사항</div>
+
+    <input type="text" id="name" placeholder="이름" />
+    <input type="number" id="money" placeholder="금액" />
+
+    <div class="section-title">* 선택 입력사항</div>
+    <input type="tel" id="phone" placeholder="전화번호 (-제외)" />
+    <textarea id="extra" rows="5" placeholder="비고사항"></textarea>
+
+    <div class="note">
+        * 이름과 전화번호 입력하면 앱 설치시 조의금 보낸 내역이 자동으로 동기화됩니다.<br />
+        * 동명이인에 유의해주세요.
+    </div>
+
+    <button id="submitBtn" disabled onclick="submitForm()">저장</button>
+</div>
+
+<script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+
+    const supabaseUrl = 'https://ytcaqevwiavipcrwktkp.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0Y2FxZXZ3aWF2aXBjcndrdGtwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc3MDc4NzMsImV4cCI6MjA2MzI4Mzg3M30._f39Tlq3P9DWN8Co7KbxhPx6ypAr7zGAkI8JnL_c5v8';
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    const nameInput = document.getElementById('name');
+    const moneyInput = document.getElementById('money');
+    const phoneInput = document.getElementById('phone');
+    const extraInput = document.getElementById('extra');
+    const moneyTypeInput = document.getElementById('moneyType');
+    const relationPersonInput = document.getElementById('relationPerson');
+    const submitBtn = document.getElementById('submitBtn');
+
+    const params = new URLSearchParams(window.location.search);
+    const recordId = params.get('id') || ''; 
+
+    async function loadRelationPeople() {
+      const { data, error } = await supabase
+        .from('bugorelationship')
+        .select('name')
+        .eq('is_deleted', false)
+        .eq('bugoaddlist_id', recordId);
+
+      if (data) {
+        data.forEach(person => {
+          const option = document.createElement('option');
+          option.value = person.name;
+          option.textContent = person.name;
+          relationPersonInput.appendChild(option);
+        });
+      }
+    }
+
+    nameInput.addEventListener('input', checkInputs);
+    moneyInput.addEventListener('input', checkInputs);
+
+    function checkInputs() {
+      submitBtn.disabled = !(nameInput.value.trim() && moneyInput.value.trim());
+    }
+
+    async function submitForm() {
+      const payload = {
+        name: nameInput.value.trim(),
+        moneyamount: moneyInput.value.trim(),
+        phone: phoneInput.value.trim(),
+        extra: extraInput.value.trim(),
+        moneytype: moneyTypeInput.value || '',
+        relationpersontype: relationPersonInput.value || '',
+        bugoaddlist_id: recordId,
+        created_at: new Date().toISOString(),
+      };
+
+      const { data, error } = await supabase
+        .from('moneyadd')
+        .insert([payload]);
+
+      if (error) {
+        alert('저장 실패: ' + error.message);
+      } else {
+        alert('저장 완료');
+        // window.location.href = 'somewhere.html'; // 저장 후 이동
+      }
+    }
+
+    function goToBugoDetail() {
+      window.location.href = `/bugodetail.html?recordId=${recordId}`;
+    }
+
+    loadRelationPeople();
+</script>
+</body>
+</html>
