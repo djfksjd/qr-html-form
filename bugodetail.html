@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>부고 상세</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <style>
+        body {
+          font-family: sans-serif;
+          margin: 20px;
+        }
+        .section {
+          margin-top: 24px;
+        }
+        img {
+          max-width: 100%;
+          height: auto;
+        }
+        .chip {
+          display: inline-block;
+          padding: 6px 12px;
+          background-color: #eee;
+          margin: 4px;
+          border-radius: 20px;
+        }
+    </style>
+</head>
+<body>
+<h2 id="ripTitle">부고 상세</h2>
+<div id="imageContainer"></div>
+
+<div id="bugoInfo" class="section"></div>
+
+<div id="relationSection" class="section">
+    <h3>관계자 목록</h3>
+    <div id="relations"></div>
+</div>
+
+<script type="module">
+    const supabaseUrl = 'https://ytcaqevwiavipcrwktkp.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0Y2FxZXZ3aWF2aXBjcndrdGtwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc3MDc4NzMsImV4cCI6MjA2MzI4Mzg3M30._f39Tlq3P9DWN8Co7KbxhPx6ypAr7zGAkI8JnL_c5v8'; // ✅ 변경
+    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+    const params = new URLSearchParams(window.location.search);
+    const recordId = params.get('id');
+
+    if (!recordId) {
+      document.body.innerHTML = '<p>잘못된 접근입니다. ID가 없습니다.</p>';
+      throw new Error('Missing id parameter');
+    }
+
+    async function loadDetail() {
+      const { data: detail, error } = await supabase
+        .from('bugoaddlist')
+        .select('*')
+        .eq('id', recordId)
+        .maybeSingle();
+
+      if (error || !detail) {
+        document.getElementById('bugoInfo').innerText = '부고 정보를 불러올 수 없습니다.';
+        return;
+      }
+
+      document.getElementById('ripTitle').innerText = `故 ${detail.ripname}`;
+
+      if (detail.imagePath) {
+        const { data: urlData } = await supabase
+          .storage
+          .from('bugoaddphoto')
+          .createSignedUrl(detail.imagePath, 60 * 30);
+
+        if (urlData?.signedUrl) {
+          const img = document.createElement('img');
+          img.src = urlData.signedUrl;
+          document.getElementById('imageContainer').appendChild(img);
+        }
+      }
+
+      const infoHtml = `
+        <p>고인 이름: ${detail.ripname}</p>
+        <p>사망 유형: ${detail.deathtype}</p>
+        <p>성별: ${detail.ripsex}</p>
+        <p>일자1: ${detail.date1}</p>
+        <p>일자2: ${detail.date2}</p>
+        <p>일자3: ${detail.date3}</p>
+        <p>장소: ${detail.location}</p>
+        <p>계좌: ${detail.account}</p>
+        <p>추가정보: ${detail.extra}</p>
+      `;
+      document.getElementById('bugoInfo').innerHTML = infoHtml;
+
+      loadRelations();
+    }
+
+    async function loadRelations() {
+      const { data: relations, error } = await supabase
+        .from('bugorelationship')
+        .select('*')
+        .eq('bugoaddlist_id', recordId)
+        .eq('is_deleted', false);
+
+      if (error || !relations.length) {
+        document.getElementById('relations').innerText = '관계자 정보가 없습니다.';
+        return;
+      }
+
+      const grouped = {};
+      for (const rel of relations) {
+        const relation = rel.relationship || '기타';
+        if (!grouped[relation]) grouped[relation] = [];
+        grouped[relation].push(rel.name);
+      }
+
+      for (const relation in grouped) {
+        const container = document.createElement('div');
+        container.innerHTML = `<strong>관계: ${relation}</strong>`;
+        grouped[relation].forEach(name => {
+          const chip = document.createElement('span');
+          chip.className = 'chip';
+          chip.textContent = name;
+          container.appendChild(chip);
+        });
+        document.getElementById('relations').appendChild(container);
+      }
+    }
+
+    loadDetail();
+</script>
+</body>
+</html>
