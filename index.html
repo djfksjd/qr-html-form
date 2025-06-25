@@ -132,12 +132,12 @@
     async function loadDeceasedName() {
       const { data, error } = await supabase
         .from('bugoaddlist')
-        .select('name')
+        .select('ripname')
         .eq('id', recordId)
         .single();
 
-      if (data?.name) {
-        bugoButton.textContent = `故 ${data.name} 부고 →`;
+      if (data?.ripname) {
+        bugoButton.textContent = `故 ${data.ripname} 부고 →`;
       }
     }
 
