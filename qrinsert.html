@@ -97,7 +97,8 @@
     const relationPersonInput = document.getElementById('relationPerson');
     const submitBtn = document.getElementById('submitBtn');
 
-    const recordId = 'REPLACE_WITH_RECORD_ID'; // 전달받은 부고 ID
+    const params = new URLSearchParams(window.location.search);
+    const recordId = params.get('id') || ''; 
 
     async function loadRelationPeople() {
       const { data, error } = await supabase
