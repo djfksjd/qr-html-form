@@ -47,7 +47,7 @@
 <div class="container">
     <h2>조의금 작성</h2>
 
-    <button onclick="goToBugoDetail()">故 [이름] 부고 →</button>
+    <button id="bugoButton" onclick="goToBugoDetail()">故 [이름] 부고 →</button>
 
     <select id="moneyType">
         <option value="">조의금 유형</option>
@@ -86,7 +86,7 @@
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
 
     const supabaseUrl = 'https://ytcaqevwiavipcrwktkp.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0Y2FxZXZ3aWF2aXBjcndrdGtwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc3MDc4NzMsImV4cCI6MjA2MzI4Mzg3M30._f39Tlq3P9DWN8Co7KbxhPx6ypAr7zGAkI8JnL_c5v8';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0Y2FxZXZ3aWF2aXBjcndrdGtwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc3MDc4NzMsImV4cCI6MjA2MzI4Mzg3M30._f39Tlq3P9DWN8Co7KbxhPx6ypAr7zGAkI8JnL_c5v8'; 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     const nameInput = document.getElementById('name');
@@ -96,9 +96,21 @@
     const moneyTypeInput = document.getElementById('moneyType');
     const relationPersonInput = document.getElementById('relationPerson');
     const submitBtn = document.getElementById('submitBtn');
+    const bugoButton = document.getElementById('bugoButton');
 
     const params = new URLSearchParams(window.location.search);
     const recordId = params.get('id') || ''; 
+
+    if (!supabaseKey) {
+      alert("Supabase 키가 설정되지 않았습니다. 코드를 확인하세요.");
+    }
+
+    nameInput.addEventListener('input', checkInputs);
+    moneyInput.addEventListener('input', checkInputs);
+
+    function checkInputs() {
+      submitBtn.disabled = !(nameInput.value.trim() && moneyInput.value.trim());
+    }
 
     async function loadRelationPeople() {
       const { data, error } = await supabase
@@ -117,11 +129,16 @@
       }
     }
 
-    nameInput.addEventListener('input', checkInputs);
-    moneyInput.addEventListener('input', checkInputs);
+    async function loadDeceasedName() {
+      const { data, error } = await supabase
+        .from('bugoaddlist')
+        .select('name')
+        .eq('id', recordId)
+        .single();
 
-    function checkInputs() {
-      submitBtn.disabled = !(nameInput.value.trim() && moneyInput.value.trim());
+      if (data?.name) {
+        bugoButton.textContent = `故 ${data.name} 부고 →`;
+      }
     }
 
     async function submitForm() {
@@ -144,7 +161,13 @@
         alert('저장 실패: ' + error.message);
       } else {
         alert('저장 완료');
-        // window.location.href = 'somewhere.html'; // 저장 후 이동
+        nameInput.value = '';
+        moneyInput.value = '';
+        phoneInput.value = '';
+        extraInput.value = '';
+        moneyTypeInput.value = '';
+        relationPersonInput.value = '';
+        submitBtn.disabled = true;
       }
     }
 
@@ -153,6 +176,7 @@
     }
 
     loadRelationPeople();
+    loadDeceasedName();
 </script>
 </body>
 </html>
