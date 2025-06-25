@@ -99,7 +99,7 @@
     const bugoButton = document.getElementById('bugoButton');
 
     const params = new URLSearchParams(window.location.search);
-    const recordId = params.get('id') || ''; 
+    const id = params.get('id') || ''; 
 
     if (!supabaseKey) {
       alert("Supabase 키가 설정되지 않았습니다. 코드를 확인하세요.");
@@ -117,7 +117,7 @@
         .from('bugorelationship')
         .select('name')
         .eq('is_deleted', false)
-        .eq('bugoaddlist_id', recordId);
+        .eq('bugoaddlist_id', id);
 
       if (data) {
         data.forEach(person => {
@@ -133,7 +133,7 @@
       const { data, error } = await supabase
         .from('bugoaddlist')
         .select('ripname')
-        .eq('id', recordId)
+        .eq('id', id)
         .single();
 
       if (data?.ripname) {
@@ -149,7 +149,7 @@
         extra: extraInput.value.trim(),
         moneytype: moneyTypeInput.value || '',
         relationpersontype: relationPersonInput.value || '',
-        bugoaddlist_id: recordId,
+        bugoaddlist_id: id,
         created_at: new Date().toISOString(),
       };
 
@@ -172,7 +172,7 @@
     }
 
     function goToBugoDetail() {
-      window.location.href = `/bugodetail.html?recordId=${recordId}`;
+      window.location.href = `/bugodetail.html?id=${id}`;
     }
 
     loadRelationPeople();
