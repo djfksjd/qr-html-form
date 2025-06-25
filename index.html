@@ -47,7 +47,7 @@
 <div class="container">
     <h2>조의금 작성</h2>
 
-    <button id="bugoButton" onclick="goToBugoDetail()">故 [이름] 부고 →</button>
+    <button id="bugoButton">故 [이름] 부고 →</button>
 
     <select id="moneyType">
         <option value="">조의금 유형</option>
@@ -79,7 +79,7 @@
         * 동명이인에 유의해주세요.
     </div>
 
-    <button id="submitBtn" disabled onclick="submitForm()">저장</button>
+    <button id="submitBtn" disabled>저장</button>
 </div>
 
 <script type="module">
@@ -172,8 +172,18 @@
     }
 
     function goToBugoDetail() {
-      window.location.href = `/bugodetail.html?id=${id}`;
+      if (id) {
+        window.location.href = `/bugodetail.html?id=${id}`;
+      } else {
+        alert("부고 ID가 없습니다.");
+      }
     }
+
+    submitBtn.addEventListener('click', submitForm);
+
+    document.addEventListener('DOMContentLoaded', () => {
+      bugoButton.addEventListener('click', goToBugoDetail);
+    });
 
     loadRelationPeople();
     loadDeceasedName();
