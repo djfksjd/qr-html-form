@@ -5,34 +5,37 @@
   <title>부고 상세</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <style>
-    body {
-  font-family: sans-serif;
-  margin: 20px;
+    <style>
+  body {
+    font-family: sans-serif;
+    margin: 20px;
+  }
 
-  /* 아래 3줄을 추가하세요 👇 */
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center; /* 텍스트도 가운데 정렬되게 */
-}
+  #imageContainer {
+    text-align: center;
+    margin-bottom: 20px;
+  }
 
-.section {
-  margin-top: 24px;
-  max-width: 600px; /* 내용이 너무 넓지 않게 */
-}
+  img {
+    max-width: 100%;
+    height: auto;
+  }
 
-img {
-  max-width: 100%;
-  height: auto;
-}
+  .section {
+    margin-top: 24px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+  }
 
-.chip {
-  display: inline-block;
-  padding: 6px 12px;
-  background-color: #eee;
-  margin: 4px;
-  border-radius: 20px;
-}
+  .chip {
+    display: inline-block;
+    padding: 6px 12px;
+    background-color: #eee;
+    margin: 4px;
+    border-radius: 20px;
+  }
+</style>
 
   </style>
 </head>
