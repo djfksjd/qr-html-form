@@ -38,8 +38,7 @@
 
 <script type="module">
     const supabaseUrl = 'https://ytcaqevwiavipcrwktkp.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0Y2FxZXZ3aWF2aXBjcndrdGtwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc3MDc4NzMsImV4cCI6MjA2MzI4Mzg3M30._f39Tlq3P9DWN8Co7KbxhPx6ypAr7zGAkI8JnL_c5v8'; // ✅ 변경
-    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0Y2FxZXZ3aWF2aXBjcndrdGtwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc3MDc4NzMsImV4cCI6MjA2MzI4Mzg3M30._f39Tlq3P9DWN8Co7KbxhPx6ypAr7zGAkI8JnL_c5v8'; 
 
     const params = new URLSearchParams(window.location.search);
     const id = params.get('id');
@@ -64,14 +63,14 @@
       document.getElementById('ripTitle').innerText = `故 ${detail.ripname}`;
 
       if (detail.imagePath) {
-        const { data: urlData } = await supabase
+        const { data, error: urlError } = await supabase
           .storage
           .from('bugoaddphoto')
           .createSignedUrl(detail.imagePath, 60 * 30);
 
-        if (urlData?.signedUrl) {
+        if (data?.signedUrl) {
           const img = document.createElement('img');
-          img.src = urlData.signedUrl;
+          img.src = data.signedUrl;
           document.getElementById('imageContainer').appendChild(img);
         }
       }
@@ -89,18 +88,21 @@
       `;
       document.getElementById('bugoInfo').innerHTML = infoHtml;
 
-      loadRelations();
+      await loadRelations();
     }
 
     async function loadRelations() {
+      const container = document.getElementById('relations');
+      container.innerHTML = '';
+
       const { data: relations, error } = await supabase
         .from('bugorelationship')
         .select('*')
         .eq('bugoaddlist_id', id)
         .eq('is_deleted', false);
 
-      if (error || !relations.length) {
-        document.getElementById('relations').innerText = '관계자 정보가 없습니다.';
+      if (error || !relations || relations.length === 0) {
+        container.innerText = '관계자 정보가 없습니다.';
         return;
       }
 
@@ -112,15 +114,15 @@
       }
 
       for (const relation in grouped) {
-        const container = document.createElement('div');
-        container.innerHTML = `<strong>관계: ${relation}</strong>`;
+        const groupDiv = document.createElement('div');
+        groupDiv.innerHTML = `<strong>관계: ${relation}</strong> `;
         grouped[relation].forEach(name => {
           const chip = document.createElement('span');
           chip.className = 'chip';
           chip.textContent = name;
-          container.appendChild(chip);
+          groupDiv.appendChild(chip);
         });
-        document.getElementById('relations').appendChild(container);
+        container.appendChild(groupDiv);
       }
     }
 
