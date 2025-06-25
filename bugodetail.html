@@ -1,44 +1,44 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <title>부고 상세</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-    <style>
-        body {
-          font-family: sans-serif;
-          margin: 20px;
-        }
-        .section {
-          margin-top: 24px;
-        }
-        img {
-          max-width: 100%;
-          height: auto;
-        }
-        .chip {
-          display: inline-block;
-          padding: 6px 12px;
-          background-color: #eee;
-          margin: 4px;
-          border-radius: 20px;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <title>부고 상세</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 20px;
+    }
+    .section {
+      margin-top: 24px;
+    }
+    img {
+      max-width: 100%;
+      height: auto;
+    }
+    .chip {
+      display: inline-block;
+      padding: 6px 12px;
+      background-color: #eee;
+      margin: 4px;
+      border-radius: 20px;
+    }
+  </style>
 </head>
 <body>
-<h2 id="ripTitle">부고 상세</h2>
-<div id="imageContainer"></div>
-
-<div id="bugoInfo" class="section"></div>
-
-<div id="relationSection" class="section">
+  <h2 id="ripTitle">부고 상세</h2>
+  <div id="imageContainer"></div>
+  <div id="bugoInfo" class="section"></div>
+  <div id="relationSection" class="section">
     <h3>관계자 목록</h3>
     <div id="relations"></div>
-</div>
+  </div>
 
-<script type="module">
+  <script type="module">
     const supabaseUrl = 'https://ytcaqevwiavipcrwktkp.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0Y2FxZXZ3aWF2aXBjcndrdGtwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc3MDc4NzMsImV4cCI6MjA2MzI4Mzg3M30._f39Tlq3P9DWN8Co7KbxhPx6ypAr7zGAkI8JnL_c5v8'; 
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0Y2FxZXZ3aWF2aXBjcndrdGtwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc3MDc4NzMsImV4cCI6MjA2MzI4Mzg3M30._f39Tlq3P9DWN8Co7KbxhPx6ypAr7zGAkI8JnL_c5v8'; // 여기에 실제 anon 키 입력
+    const { createClient } = supabase;
+    const client = createClient(supabaseUrl, supabaseKey);
 
     const params = new URLSearchParams(window.location.search);
     const id = params.get('id');
@@ -49,14 +49,15 @@
     }
 
     async function loadDetail() {
-      const { data: detail, error } = await supabase
+      const { data: detail, error } = await client
         .from('bugoaddlist')
         .select('*')
         .eq('id', id)
         .single();
 
-console.log('🟢 detail:', detail);
-    console.log('🔴 error:', error);
+      console.log('🟢 detail:', detail);
+      console.log('🔴 error:', error);
+
       if (error || !detail) {
         document.getElementById('bugoInfo').innerText = '부고 정보를 불러올 수 없습니다.';
         return;
@@ -65,8 +66,7 @@ console.log('🟢 detail:', detail);
       document.getElementById('ripTitle').innerText = `故 ${detail.ripname}`;
 
       if (detail.imagePath) {
-        const { data, error: urlError } = await supabase
-          .storage
+        const { data, error: urlError } = await client.storage
           .from('bugoaddphoto')
           .createSignedUrl(detail.imagePath, 60 * 30);
 
@@ -74,6 +74,8 @@ console.log('🟢 detail:', detail);
           const img = document.createElement('img');
           img.src = data.signedUrl;
           document.getElementById('imageContainer').appendChild(img);
+        } else {
+          console.error('🔴 이미지 URL 오류:', urlError);
         }
       }
 
@@ -97,7 +99,7 @@ console.log('🟢 detail:', detail);
       const container = document.getElementById('relations');
       container.innerHTML = '';
 
-      const { data: relations, error } = await supabase
+      const { data: relations, error } = await client
         .from('bugorelationship')
         .select('*')
         .eq('bugoaddlist_id', id)
@@ -129,6 +131,6 @@ console.log('🟢 detail:', detail);
     }
 
     loadDetail();
-</script>
+  </script>
 </body>
 </html>
