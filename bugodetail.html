@@ -55,6 +55,8 @@
         .eq('id', id)
         .single();
 
+console.log('🟢 detail:', detail);
+    console.log('🔴 error:', error);
       if (error || !detail) {
         document.getElementById('bugoInfo').innerText = '부고 정보를 불러올 수 없습니다.';
         return;
